@@ -17,7 +17,7 @@ MODELS = {
     "HP G4 EE": "https://cdn.discordapp.com/attachments/704479038970003570/1151975946111418468/IMG_3702.jpg",
 }
 
-class RoleButton(discord.ui.Button):
+class QuizButton(discord.ui.Button):
     def __init__(self, choice, correct_choice):
         """A button for one role. `custom_id` is needed for persistent views."""
         super().__init__(
@@ -26,18 +26,31 @@ class RoleButton(discord.ui.Button):
             custom_id=choice  # Set a unique custom_id for each button
         )
 
+        # define for checking if user is right or not
         self.user_choice = choice
         self.correct_choice = correct_choice
     
     async def callback(self, interaction: discord.Interaction):
         if self.user_choice == self.correct_choice:
-            print(f'userChoice: {self.user_choice}')
-            print(f'correctChoice: {self.correct_choice}')
-            await interaction.response.send_message(f"Correct!", ephemeral=True)
+            embed = discord.Embed(
+                title=f"<:check:1081988275851513919> Correct Answer!",
+                description=f'The **model** of this Chromebook is **{self.correct_choice}**.\n**Play Again:** </quiz:1151980793455972592>',
+                color=discord.Colour.green(),
+            )
+            embed.set_image(url=MODELS[self.correct_choice])
+            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/704479038970003570/1152068105699328080/iu.png")
+
+            await interaction.response.send_message(embed=embed, ephemeral=True)
         else:
-            print(f'userChoice: {self.user_choice}')
-            print(f'correctChoice: {self.correct_choice}')
-            await interaction.response.send_message(f"Incorrect!", ephemeral=True)
+            embed = discord.Embed(
+                title=f"<:X_:1152069831638650890> Incorrect Answer.",
+                description=f'The correct answer to this question is **{self.correct_choice}**.\n**Play Again:** </quiz:1151980793455972592>',
+                color=discord.Colour.red(),
+            )
+            embed.set_image(url=MODELS[self.correct_choice])
+            embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/704479038970003570/1152068154114179192/iu.png")
+
+            await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 class Quiz(commands.Cog):
@@ -67,21 +80,18 @@ class Quiz(commands.Cog):
         # Create the embed
         embed = discord.Embed(
             title=f"<:slash:1150933397179486339> Cyber Flash Chromebook Quiz",
-            description=f'What is the **model** of the Chromebook shown below?',
+            description=f'What is the **model** of the Chromebook shown below?\n\n',
             color=discord.Colour.blurple(),
         )
-        # Add the time the user is taking the quiz
-        now = datetime.datetime.now()
-        rtime = now.strftime("%B %d, %Y, %H:%M")
-        embed.set_footer(text=f"Requested by {ctx.author.display_name} » {rtime}")
+        # set the thumbnail
+        embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/704479038970003570/1152068041149001758/iu.png")
         # Set the image to the image being used for the quiz
         embed.set_image(url=image_link)
 
         view = discord.ui.View(timeout=None)
 
         for answer in answers:
-            view.add_item(RoleButton(answer, selected_model))
-            print(f'added {answer} to view (correct answer: {selected_model})')
+            view.add_item(QuizButton(answer, selected_model))
 
         await ctx.respond(embed=embed, view=view)
 
