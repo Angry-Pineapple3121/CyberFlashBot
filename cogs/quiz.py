@@ -19,7 +19,6 @@ MODELS = {
 
 class QuizButton(discord.ui.Button):
     def __init__(self, choice, correct_choice):
-        """A button for one role. `custom_id` is needed for persistent views."""
         super().__init__(
             label=choice,
             style=discord.ButtonStyle.primary,
