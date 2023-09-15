@@ -3,7 +3,6 @@ import discord
 import random
 
 from discord.ext import commands
-from discord.commands import Option
 
 # Define all of our chromebook models
 MODELS = {
@@ -28,8 +27,14 @@ class QuizButton(discord.ui.Button):
         # define for checking if user is right or not
         self.user_choice = choice
         self.correct_choice = correct_choice
+        self.clicked = False  # Keep track of whether the button has been clicked
     
     async def callback(self, interaction: discord.Interaction):
+        if self.clicked:
+            return
+        
+        self.clicked = True
+
         if self.user_choice == self.correct_choice:
             embed = discord.Embed(
                 title=f"<:check:1081988275851513919> Correct Answer!",
@@ -39,7 +44,9 @@ class QuizButton(discord.ui.Button):
             embed.set_image(url=MODELS[self.correct_choice])
             embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/704479038970003570/1152068105699328080/iu.png")
 
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            self.disabled = True
+            self.style = discord.ButtonStyle.success
+            await interaction.response.edit_message(embed=embed, view=self.view)
         else:
             embed = discord.Embed(
                 title=f"<:X_:1152069831638650890> Incorrect Answer.",
@@ -49,7 +56,9 @@ class QuizButton(discord.ui.Button):
             embed.set_image(url=MODELS[self.correct_choice])
             embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/704479038970003570/1152068154114179192/iu.png")
 
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            self.disabled = True
+            self.style = discord.ButtonStyle.danger
+            await interaction.response.edit_message(embed=embed, view=self.view)
 
 
 class Quiz(commands.Cog):
